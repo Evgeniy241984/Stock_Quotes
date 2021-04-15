@@ -2,7 +2,6 @@
  A stock quotes application for Kottans FE 2021 Course.
 
 
-##A stock quotes application for Kottans FE 2021 Course.
 
 
 *This application will allow users to get acquainted with the general picture of the stock market,
