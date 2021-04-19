@@ -19,4 +19,4 @@ the current quotes and changes in stock quotes!*
 4. SQ: This feature will allow to review all relevant information for a specific stock quote or groups of stock quotes specified by symbol.
 
 
-Used API: [Yahoo Finance QPI (unofficial)](https://rapidapi.com/apidojo/api/yahoo-finance1?endpoint=apiendpoint_f787ce0f-17f7-40cf-a731-f141fd61cc08)
+Used API: [Yahoo Finance API (unofficial)](https://rapidapi.com/apidojo/api/yahoo-finance1?endpoint=apiendpoint_f787ce0f-17f7-40cf-a731-f141fd61cc08)
