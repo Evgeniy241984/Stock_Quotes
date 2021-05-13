@@ -71,7 +71,7 @@ function performSearch(ticker) {
     .catch(() => {
       window.dataStore.error = 'Some error occurred.';
     })
-    .finally(window.renderApp());
+    .finally(window.renderApp);
 }
 
 renderApp();
@@ -129,23 +129,24 @@ function getCurrentTickerData() {
   return tickerProfile[currentTicker];
 }
 
-function RenderQuotesBySearch() {
-  let { currentTicker } = window.dataStore;
-  let quotesData = getCurrentTickerData();
-
-  let content = '';
-  if (quotesData) {
-    content += `
-    <h4>${currentTicker}</h4>
+function prepareQuotesBySearchItem(item) {
+  return `
+    <h4>${item.symbol}</h4>
     <ul>
-    <li>${quotesData.longName} </li>
-    <li>${quotesData.fullExchangeName} </li>
-    <li>${quotesData.regularMarketPrice} </li>
-    <li>${quotesData.regularMarketDayRange} </li>
+    <li>${item.longName} </li>
+    <li>${item.fullExchangeName} </li>
+    <li>${item.regularMarketPrice} </li>
+    <li>${item.regularMarketDayRange} </li>
     </ul>
+    `;
+}
+
+function RenderQuotesBySearch() {
+  let quotesData = getCurrentTickerData();
+  let domelEments = quotesData.map(prepareQuotesBySearchItem).join('');
+  return `
+    <div>${domelEments}</div>
   `;
-  }
-  return content ? `<section> ${content} </section>` : '';
 }
 
 function StockSwitch(currentStock, setCurrentStock) {
