@@ -32,7 +32,7 @@ window.validateAndLoadStockData = validateAndLoadStockData;
 
 function setCurrentStock(value) {
   window.dataStore.currentStock = value;
-  window.renderApp();
+  window.performSwitch();
 }
 
 function isCurrentTickerLoaded() {
