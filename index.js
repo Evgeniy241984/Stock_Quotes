@@ -1,13 +1,13 @@
 import {
   allowedTickers,
   getQuotesByTickerURL,
+  getGainersLosersURL,
   getDateFromUnixTimestamp,
   NEW_YORK_STOCK,
   LONDON_STOCK,
   SINGAPORE_STOCK,
 } from './utils';
-import { fetchBySymbol } from './api';
-import { dayIndicators } from './indicators';
+import { fetchBySymbol, fetchGainersLosers } from './api';
 import { topTrendingTickers } from './indicators';
 
 if (module.hot) {
@@ -16,15 +16,19 @@ if (module.hot) {
 
 window.dataStore = {
   currentStock: '',
-  currentTicker: '',
-  isDataLoading: false,
+  stockProfile: {},
+  isSearchDataLoading: false,
+  isSwitchDataLoading: false,
   error: null,
+  currentTicker: '',
   tickerProfile: {},
 };
 
 window.renderApp = renderApp;
 window.performSearch = performSearch;
-window.validateAndLoadData = validateAndLoadData;
+window.performSwitch = performSwitch;
+window.validateAndLoadTickerData = validateAndLoadTickerData;
+window.validateAndLoadStockData = validateAndLoadStockData;
 
 function setCurrentStock(value) {
   window.dataStore.currentStock = value;
@@ -35,7 +39,11 @@ function isCurrentTickerLoaded() {
   return Boolean(getCurrentTickerData());
 }
 
-function validateAndLoadData() {
+function isCurrentStockLoaded() {
+  return Boolean(getCurrentStockData());
+}
+
+function validateAndLoadTickerData() {
   const { currentTicker } = window.dataStore;
 
   if (!allowedTickers.includes(currentTicker.toLowerCase())) {
@@ -43,25 +51,25 @@ function validateAndLoadData() {
     return Promise.resolve({ error });
   }
 
-  const url = getQuotesByTickerURL(currentTicker);
+  const urlByTicker = getQuotesByTickerURL(currentTicker);
   if (!isCurrentTickerLoaded()) {
-    return fetchBySymbol(url).then(({ quoteResponse }) => ({
+    return fetchBySymbol(urlByTicker).then(({ quoteResponse }) => ({
       data: quoteResponse.result,
     }));
   }
+
   return Promise.resolve({});
 }
 
 function performSearch(ticker) {
   window.dataStore.currentTicker = ticker;
   window.dataStore.error = null;
-  window.isDataLoading = true;
+  window.isSearchDataLoading = true;
 
   window
-    .validateAndLoadData()
+    .validateAndLoadTickerData()
     .then(({ error, data }) => {
-      window.dataStore.isDataLoading = false;
-
+      window.dataStore.isSearchDataLoading = false;
       if (error) {
         window.dataStore.error = error;
       } else if (data) {
@@ -74,6 +82,39 @@ function performSearch(ticker) {
     .finally(window.renderApp);
 }
 
+function validateAndLoadStockData() {
+  const { currentStock } = window.dataStore;
+
+  const urlGainerslosers = getGainersLosersURL(currentStock);
+  if (!isCurrentStockLoaded()) {
+    return fetchGainersLosers(urlGainerslosers).then(({ finanse }) => ({
+      data: finanse.result,
+    }));
+  }
+  return Promise.resolve({});
+}
+
+function performSwitch(stock) {
+  window.dataStore.currentStock = stock;
+  window.dataStore.error = null;
+  window.isSwitchDataLoading = true;
+
+  window
+    .validateAndLoadStockData()
+    .then(({ error, data }) => {
+      window.dataStore.isSwitchDataLoading = false;
+      if (error) {
+        window.dataStore.error = error;
+      } else if (data) {
+        window.dataStore.stockProfile[stock] = data;
+      }
+    })
+    .catch(() => {
+      window.dataStore.error = 'Error occurred.';
+    })
+    .finally(window.renderApp);
+}
+
 renderApp();
 
 function renderApp() {
@@ -81,39 +122,46 @@ function renderApp() {
   ${StartApp()}`;
 }
 
-function RenderResults() {
-  const { currentTicker, isDataLoading, error } = window.dataStore;
+function StartApp() {
+  return `<section>
+    ${SearchByTicker()}
+    ${Results()}
+
+  </section>`;
+}
+
+function Results() {
+  const { currentTicker, isSearchDataLoading, error, currentStock } = window.dataStore;
   let content = '';
   if (currentTicker === '') {
     content = 'Search by ticker';
   } else {
-    if (isDataLoading) {
+    if (isSearchDataLoading) {
       content = 'Loading...';
     }
     if (error !== null) {
       content = error;
     }
     if (isCurrentTickerLoaded()) {
-      content = `
-        ${RenderQuotesBySearch()}
+      content += `
+        ${QuotesBySearch()}
       `;
     }
   }
+  content += `
+    ${StockSwitch(currentStock, setCurrentStock)}`;
 
-  return `<div>
+  if (isCurrentStockLoaded()) {
+    content += `
+    ${GainersTable()}
+    
+    ${TopTrendingByStock()}
+    `;
+  }
+
+  return `
     <div>${content}</div>
-    ${RenderGainersTable()}
-    ${StockSwitch(window.dataStore.currentStock, setCurrentStock)}
-    ${RenderTopTrendingByStock()}
-  </div>`;
-}
-
-function StartApp() {
-  return `<section>
-    ${SearchByTicker()}
-    ${RenderResults()}
-
-  </section>`;
+    `;
 }
 
 function SearchByTicker() {
@@ -129,7 +177,7 @@ function getCurrentTickerData() {
   return tickerProfile[currentTicker];
 }
 
-function prepareQuotesBySearchItem(item) {
+function prepareItemBySearch(item) {
   return `
     <h4>${item.symbol}</h4>
     <ul>
@@ -141,9 +189,9 @@ function prepareQuotesBySearchItem(item) {
     `;
 }
 
-function RenderQuotesBySearch() {
+function QuotesBySearch() {
   let quotesData = getCurrentTickerData();
-  let domelEments = quotesData.map(prepareQuotesBySearchItem).join('');
+  let domelEments = quotesData.map(prepareItemBySearch).join('');
   return `
     <div>${domelEments}</div>
   `;
@@ -151,7 +199,6 @@ function RenderQuotesBySearch() {
 
 function StockSwitch(currentStock, setCurrentStock) {
   return `
-  <h3>Top Trending Tickers</h3> 
   <h5>Select Stock Exchange</h5>
   ${[
     { value: NEW_YORK_STOCK, name: 'NewYork SE' },
@@ -174,7 +221,31 @@ function StockSwitch(currentStock, setCurrentStock) {
     .join('')}`;
 }
 
-function RenderTopTrendingByStock() {
+function getCurrentStockData() {
+  const { currentStock, stockProfile } = window.dataStore;
+  return stockProfile[currentStock];
+}
+
+function GainersTable() {
+  let gainersData = getCurrentStockData().slice(0, 1);
+  const domElements = gainersData.qoutes.map(GainersLosersItem).join('');
+  return `
+  <h3>Top Gainers</h3>
+  <ul>
+  ${domElements}
+  </ul>`;
+}
+
+function GainersLosersItem(line) {
+  return `<li>
+  <div> ${line.symbol} </div>
+  <div> ${line.regularMarketPrice} </div>
+  <div> ${line.changeInPercent + ' %'}</div>
+  <div> ${line.prevClose} </div> 
+  </li>`;
+}
+
+function TopTrendingByStock() {
   const { currentStock } = window.dataStore;
   let currentDate = '',
     content = '',
@@ -183,42 +254,24 @@ function RenderTopTrendingByStock() {
 
   if (currentStock) {
     quotesData = topTrendingTickers[currentStock];
-    domElements = quotesData.map(PrepareTrendingItem).join('');
+    domElements = quotesData.map(TopTrendingItem).join('');
     currentDate = getDateFromUnixTimestamp(quotesData[0].regularMarketTime);
   }
 
   content += `
+  <h3>Top Trending Tickers</h3> 
   <h4>${currentStock} ${currentDate}</h4>
   <ul>${domElements}</ul>`;
 
   return content ? `<section>${content}</section>` : '';
 }
 
-function PrepareTrendingItem(line) {
+function TopTrendingItem(line) {
   return `<li>
   <div> ${line.symbol} </div>
   <div> ${line.longName} </div>
   <div> ${line.regularMarketPrice} </div>
   <div> ${line.regularMarketPreviousClose} </div>
   <div> ${line.regularMarketChange.toFixed(2) + ' %'} </div> 
-  </li>`;
-}
-
-function RenderGainersTable() {
-  const { quotes } = dayIndicators.dayGainers;
-  const domElements = quotes.map(PrepareGainersLosersItem).join('');
-  return `
-  <h3>Top Gainers</h3>
-  <ul>
-  ${domElements}
-  </ul>`;
-}
-
-function PrepareGainersLosersItem(line) {
-  return `<li>
-  <div> ${line.symbol} </div>
-  <div> ${line.regularMarketPrice} </div>
-  <div> ${line.changeInPercent + ' %'}</div>
-  <div> ${line.prevClose} </div> 
   </li>`;
 }
