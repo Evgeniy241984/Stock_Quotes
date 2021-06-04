@@ -2,7 +2,7 @@ import { getCurrentTickerData } from '../data/stockQuotesData';
 
 export default function StockTickerQuotes() {
   let quotesData = getCurrentTickerData();
-  let domelEments = quotesData.map(getPreparedItem).join('');
+  let domeElements = quotesData.map(getPreparedItem).join('');
 
   function getPreparedItem(item) {
     return `
@@ -17,6 +17,6 @@ export default function StockTickerQuotes() {
   }
 
   return `
-      <div>${domelEments}</div>
+      <div>${domeElements}</div>
     `;
 }
