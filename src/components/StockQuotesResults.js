@@ -1,7 +1,12 @@
-import { isCurrentTickerLoaded } from '../data/stockQuotesData';
-import StockTickerQuotes from './StockTickerQuotes';
+/** @jsx createElement */
+/** @jsxFrag createFragment */
+import { createElement, createFragment } from '../framework/element';
 
-export default function StockQuotesResults() {
+import { isCurrentTickerLoaded } from '../data/stockQuotesData';
+import { StockQuotesToday } from './StockQuotesToday';
+import { getCurrentTickerData } from '../data/stockQuotesData';
+
+function StockQuotesResults() {
   const { currentTicker, isSearchDataLoading, error } = window.dataStore;
   let content = '';
   if (currentTicker === '') {
@@ -13,13 +18,10 @@ export default function StockQuotesResults() {
     if (error !== null) {
       content = error;
     }
-    if (isCurrentTickerLoaded()) {
-      content += `
-          ${StockTickerQuotes()}
-        `;
-    }
+
+    const quotesData = getCurrentTickerData();
+    return <StockQuotesToday quotesData={quotesData} />;
   }
-  return `
-      <div>${content}</div>
-      `;
+  return <div>{content}</div>;
 }
+export default StockQuotesResults;

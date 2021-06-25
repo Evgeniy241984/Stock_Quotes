@@ -1,5 +1,6 @@
 import { getQuotesByTickerURL, fetchBySymbol } from './yahooFinanceAPI';
 import allowedTickers from '../utils';
+import renderApp from '../framework/render';
 
 export function getCurrentTickerData() {
   const { currentTicker, tickerProfile } = window.dataStore;
@@ -33,18 +34,17 @@ export function performSearch(ticker) {
   window.dataStore.error = null;
   window.isSearchDataLoading = true;
 
-  window
-    .validateAndLoadTickerData()
+  validateAndLoadTickerData()
     .then(({ error, data }) => {
       window.dataStore.isSearchDataLoading = false;
       if (error) {
         window.dataStore.error = error;
       } else if (data) {
-        window.dataStore.tickerProfile[ticker] = data;
+        window.dataStore.tickerProfile[ticker] = data[0];
       }
     })
     .catch(() => {
       window.dataStore.error = 'Some error occurred.';
     })
-    .finally(window.renderApp);
+    .finally(renderApp);
 }
