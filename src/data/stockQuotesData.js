@@ -2,7 +2,7 @@ import { getQuotesByTickerURL, fetchBySymbol } from './yahooFinanceAPI';
 import allowedTickers from '../utils';
 import renderApp from '../framework/render';
 
-export function getCurrentTickerData() {
+/* export function getCurrentTickerData() {
   const { currentTicker, tickerProfile } = window.dataStore;
   return tickerProfile[currentTicker];
 }
@@ -20,6 +20,7 @@ export function validateAndLoadTickerData() {
   }
 
   const urlByTicker = getQuotesByTickerURL(currentTicker);
+
   if (!isCurrentTickerLoaded()) {
     return fetchBySymbol(urlByTicker).then(({ quoteResponse }) => ({
       data: quoteResponse.result,
@@ -48,3 +49,4 @@ export function performSearch(ticker) {
     })
     .finally(renderApp);
 }
+ */

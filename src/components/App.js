@@ -1,15 +1,24 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../framework/element';
-
+import { useTicker } from '../data/customHooks';
+import { createElement, createFragment } from '../framework';
 import SearchByTicker from './SearchByTicker';
 import StockQuotesResults from './StockQuotesResults';
 
-export default function App() {
+function App() {
+  const { currentTicker, setCurrentTicker, error, isLoading, quotesData } = useTicker();
+
   return (
     <>
-      <SearchByTicker />
-      <StockQuotesResults />
+      <SearchByTicker value={currentTicker} onChange={setCurrentTicker} />
+      <StockQuotesResults
+        currentTicker={currentTicker}
+        error={error}
+        isLoading={isLoading}
+        quotesData={quotesData}
+      />
     </>
   );
 }
+
+export default App;

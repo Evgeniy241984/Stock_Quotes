@@ -1,6 +1,6 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement } from '../framework/element';
+import { createElement } from '../framework';
 
 function TickerQuotesItem({ item }) {
   return <li> {item} </li>;

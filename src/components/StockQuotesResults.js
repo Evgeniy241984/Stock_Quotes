@@ -1,27 +1,22 @@
 /** @jsx createElement */
 /** @jsxFrag createFragment */
-import { createElement, createFragment } from '../framework/element';
-
-import { isCurrentTickerLoaded } from '../data/stockQuotesData';
+import { createElement, useState } from '../framework';
 import { StockQuotesToday } from './StockQuotesToday';
-import { getCurrentTickerData } from '../data/stockQuotesData';
 
-function StockQuotesResults() {
-  const { currentTicker, isSearchDataLoading, error } = window.dataStore;
-  let content = '';
-  if (currentTicker === '') {
-    content = 'Search by ticker';
-  } else {
-    if (isSearchDataLoading) {
-      content = 'Loading...';
-    }
-    if (error !== null) {
-      content = error;
-    }
-
-    const quotesData = getCurrentTickerData();
-    return <StockQuotesToday quotesData={quotesData} />;
+function StockQuotesResults({ currentTicker, error, isLoading, quotesData }) {
+  if (!currentTicker) {
+    return <div>Search by ticker</div>;
   }
-  return <div>{content}</div>;
+
+  if (isLoading) {
+    return <div>{error}</div>;
+  }
+
+  if (error) {
+    return <div>Loading...</div>;
+  }
+
+  return <StockQuotesToday quotesData={quotesData} />;
 }
+
 export default StockQuotesResults;
