@@ -2,10 +2,10 @@ import { useState, useEffect } from '../framework';
 import { loadCurrentTickerData } from '../data/yahooFinanceAPI';
 
 export const useTicker = () => {
-  const { currentTicker, setCurrentTicker } = useState('');
-  const { error, setError } = useState(null);
-  const { isLoading, setIsLoading } = useState(false);
-  const { quotesData, setQuotesData } = useState({});
+  const [currentTicker, setCurrentTicker] = useState('');
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [quotesData, setQuotesData] = useState({});
 
   useEffect(() => {
     if (currentTicker) {
